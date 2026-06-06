@@ -20,6 +20,8 @@ import androidx.core.graphics.createBitmap
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
+import android.content.pm.ServiceInfo
+import dev.mintylabs.volumistatuslinjen.R
 import java.util.concurrent.ConcurrentHashMap
 
 class VolumeService : Service() {
@@ -32,7 +34,7 @@ class VolumeService : Service() {
     private lateinit var audioManager: AudioManager
     private lateinit var notificationManager: NotificationManager
 
-    private val channelId = "Volumsporingskanal"
+    private val channelId = "VolumeTrackerChannel"
     private val notificationId = 1
 
     // Cache icons to avoid regenerating bitmaps for every volume change
@@ -49,7 +51,6 @@ class VolumeService : Service() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == "android.media.VOLUME_CHANGED_ACTION") {
                 val type = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", -1)
-                // We only care about media volume (STREAM_MUSIC)
                 if (type == AudioManager.STREAM_MUSIC) {
                     updateNotification()
                 }
@@ -66,7 +67,11 @@ class VolumeService : Service() {
         createNotificationChannel()
 
         // Start the service in the foreground immediately
-        startForeground(notificationId, buildNotification())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(notificationId, buildNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(notificationId, buildNotification())
+        }
 
         // Register the volume listener
         val filter = IntentFilter("android.media.VOLUME_CHANGED_ACTION")
@@ -74,7 +79,8 @@ class VolumeService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // Keeps the service running until explicitly stopped
+        // Refresh the notification in case it was lost or to ensure it's visible
+        updateNotification()
         return START_STICKY
     }
 
@@ -86,10 +92,8 @@ class VolumeService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        return null // We don't need bound components for this
+        return null
     }
-
-    // --- Core Logic ---
 
     private fun getCurrentVolumePercentage(): Int {
         val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
