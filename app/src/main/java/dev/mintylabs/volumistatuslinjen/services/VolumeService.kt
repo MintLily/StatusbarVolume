@@ -139,7 +139,7 @@ class VolumeService : Service() {
         // Notification Channels are mandatory for API 26+
         val channel = NotificationChannel(
             channelId,
-            "Volumsporing",
+            getString(R.string.notif_channel_name),
             NotificationManager.IMPORTANCE_LOW // Low priority ensures no sound/pop-up, just the icon
         )
         channel.setShowBadge(false)

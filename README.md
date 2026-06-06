@@ -1,6 +1,13 @@
 # Volum i Statuslinjen
 
 Jeg klarte ikke å finne en app som la til medievolum i statuslinjen, så jeg laget min egen. Denne er laget for å etterligne enkelte dedikerte mediespillere, slik som de fra FiiO.
+- Supported Languages
+  - English
+  - Norsk (bokmål)
+  - Español (MX/US)
+  - Deutsch
+  - Français (FR/CA)
+  - 日本の
 
 # Volume in Status Bar
 

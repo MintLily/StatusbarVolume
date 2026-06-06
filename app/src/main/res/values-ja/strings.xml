@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">ステータスバー音量</string>
+    <string name="service_running">サービスが実行中です</string>
+    <string name="service_stopped">サービスが停止しています</string>
+    <string name="start_service">サービスを開始</string>
+    <string name="stop_service">サービスを停止</string>
+    <string name="notif_channel_name">音量の追跡</string>
+    <string name="notif_title">メディアの音量</string>
+    <string name="notif_text">レベル: %1$d%%</string>
+    <string name="auto_start">起動時に開始</string>
+    <string name="refresh_notif">通知を再表示</string>
+</resources>

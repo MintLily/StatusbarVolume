@@ -63,7 +63,7 @@ class MainActivity : ComponentActivity() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = if (isServiceRunning) "Tjenesten kjører" else "Tjenesten er stoppet",
+                text = if (isServiceRunning) stringResource(R.string.service_running) else stringResource(R.string.service_stopped),
                 style = MaterialTheme.typography.headlineMedium
             )
             
@@ -78,7 +78,7 @@ class MainActivity : ComponentActivity() {
                 enabled = !isServiceRunning,
                 modifier = Modifier.fillMaxWidth(0.6f)
             ) {
-                Text("Start tjenesten")
+                Text(stringResource(R.string.start_service))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -93,7 +93,7 @@ class MainActivity : ComponentActivity() {
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                 modifier = Modifier.fillMaxWidth(0.6f)
             ) {
-                Text("Stopp tjenesten")
+                Text(stringResource(R.string.stop_service))
             }
         }
     }
