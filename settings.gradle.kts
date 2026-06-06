@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Volum i Statuslinjen"
+rootProject.name = "StatusbarVolume"
 include(":app")
  
