@@ -9,6 +9,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import dev.mintylabs.volumistatuslinjen.R
 import androidx.compose.ui.unit.dp
 import dev.mintylabs.volumistatuslinjen.services.VolumeService
 import dev.mintylabs.volumistatuslinjen.ui.theme.VolumIStatuslinjenTheme
@@ -19,6 +21,7 @@ import androidx.core.content.ContextCompat
 import android.os.Build
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import android.content.Context
 
 class MainActivity : ComponentActivity() {
 
@@ -42,6 +45,8 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun VolumeControlScreen() {
         var isServiceRunning by remember { mutableStateOf(VolumeService.isRunning) }
+        val sharedPreferences = remember { getSharedPreferences("app_settings", Context.MODE_PRIVATE) }
+        var autoStartEnabled by remember { mutableStateOf(sharedPreferences.getBoolean("auto_start", false)) }
 
         // Update the state whenever the activity is resumed
         val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
@@ -58,12 +63,12 @@ class MainActivity : ComponentActivity() {
         }
 
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = if (isServiceRunning) "Tjenesten kjører" else "Tjenesten er stoppet",
+                text = if (isServiceRunning) stringResource(R.string.service_running) else stringResource(R.string.service_stopped),
                 style = MaterialTheme.typography.headlineMedium
             )
             
@@ -78,7 +83,7 @@ class MainActivity : ComponentActivity() {
                 enabled = !isServiceRunning,
                 modifier = Modifier.fillMaxWidth(0.6f)
             ) {
-                Text("Start tjenesten")
+                Text(stringResource(R.string.start_service))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -93,7 +98,37 @@ class MainActivity : ComponentActivity() {
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
                 modifier = Modifier.fillMaxWidth(0.6f)
             ) {
-                Text("Stopp tjenesten")
+                Text(stringResource(R.string.stop_service))
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(0.8f)
+            ) {
+                Text(text = stringResource(R.string.auto_start))
+                Switch(
+                    checked = autoStartEnabled,
+                    onCheckedChange = { checked ->
+                        autoStartEnabled = checked
+                        sharedPreferences.edit().putBoolean("auto_start", checked).apply()
+                    }
+                )
+            }
+
+            if (isServiceRunning) {
+                Spacer(modifier = Modifier.height(24.dp))
+                OutlinedButton(
+                    onClick = {
+                        val intent = Intent(this@MainActivity, VolumeService::class.java)
+                        startForegroundService(intent)
+                    },
+                    modifier = Modifier.fillMaxWidth(0.6f)
+                ) {
+                    Text(stringResource(R.string.refresh_notif))
+                }
             }
         }
     }

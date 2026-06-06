@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">StatuslinjeVolum</string>
+    <string name="service_running">Tjenesten kjører</string>
+    <string name="service_stopped">Tjenesten er stoppet</string>
+    <string name="start_service">Start tjeneste</string>
+    <string name="stop_service">Stopp tjeneste</string>
+    <string name="notif_channel_name">Volumsporing</string>
+    <string name="notif_title">Medievolum</string>
+    <string name="notif_text">Nivå: %1$d%%</string>
+    <string name="auto_start">Start ved oppstart</string>
+    <string name="refresh_notif">Gjenopprett varsel</string>
+</resources>

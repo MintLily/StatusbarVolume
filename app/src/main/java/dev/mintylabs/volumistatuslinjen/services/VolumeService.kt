@@ -20,6 +20,9 @@ import androidx.core.graphics.createBitmap
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
+import android.content.pm.ServiceInfo
+import dev.mintylabs.volumistatuslinjen.R
+import java.util.concurrent.ConcurrentHashMap
 
 class VolumeService : Service() {
 
@@ -31,15 +34,23 @@ class VolumeService : Service() {
     private lateinit var audioManager: AudioManager
     private lateinit var notificationManager: NotificationManager
 
-    private val channelId = "Volumsporingskanal"
+    private val channelId = "VolumeTrackerChannel"
     private val notificationId = 1
+
+    // Cache icons to avoid regenerating bitmaps for every volume change
+    private val iconCache = ConcurrentHashMap<Int, Icon>()
+
+    private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        textAlign = Paint.Align.CENTER
+        isFakeBoldText = true
+    }
 
     // Listens for volume changes broadcasted by the Android OS
     private val volumeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == "android.media.VOLUME_CHANGED_ACTION") {
                 val type = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", -1)
-                // We only care about media volume (STREAM_MUSIC)
                 if (type == AudioManager.STREAM_MUSIC) {
                     updateNotification()
                 }
@@ -56,7 +67,11 @@ class VolumeService : Service() {
         createNotificationChannel()
 
         // Start the service in the foreground immediately
-        startForeground(notificationId, buildNotification())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(notificationId, buildNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(notificationId, buildNotification())
+        }
 
         // Register the volume listener
         val filter = IntentFilter("android.media.VOLUME_CHANGED_ACTION")
@@ -64,7 +79,8 @@ class VolumeService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // Keeps the service running until explicitly stopped
+        // Refresh the notification in case it was lost or to ensure it's visible
+        updateNotification()
         return START_STICKY
     }
 
@@ -72,13 +88,12 @@ class VolumeService : Service() {
         super.onDestroy()
         isRunning = false
         unregisterReceiver(volumeReceiver)
+        iconCache.clear()
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        return null // We don't need bound components for this
+        return null
     }
-
-    // --- Core Logic ---
 
     private fun getCurrentVolumePercentage(): Int {
         val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
@@ -86,41 +101,44 @@ class VolumeService : Service() {
         return if (max > 0) (current * 100) / max else 0
     }
 
-    // Dynamically generates a text icon as an alpha mask
-    private fun createVolumeIcon(volume: Int): Icon {
-        val size = 128 // Canvas size
-        val bitmap = createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
+    private fun getOrCreateVolumeIcon(volume: Int): Icon {
+        return iconCache.getOrPut(volume) {
+            val size = 128
+            val bitmap = createBitmap(size, size, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            val text = volume.toString()
 
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE // Must be solid white for the OS alpha-mask tinting to work
-            textSize = 90f      // Adjust text size to fit the canvas
-            textAlign = Paint.Align.CENTER
-            isFakeBoldText = true
+            textPaint.textSize = when (text.length) {
+                1 -> 96f
+                2 -> 88f
+                else -> 72f
+            }
+
+            val textHeight = textPaint.descent() - textPaint.ascent()
+            val textOffset = (textHeight / 2) - textPaint.descent()
+            canvas.drawText(text, size / 2f, (size / 2f) + textOffset, textPaint)
+
+            Icon.createWithBitmap(bitmap)
         }
-
-        val text = volume.toString()
-
-        // Center the text vertically
-        val textHeight = paint.descent() - paint.ascent()
-        val textOffset = (textHeight / 2) - paint.descent()
-
-        // Draw the text onto the canvas
-        canvas.drawText(text, size / 2f, (size / 2f) + textOffset, paint)
-
-        return Icon.createWithBitmap(bitmap)
     }
 
     private fun buildNotification(): Notification {
         val volume = getCurrentVolumePercentage()
-        val icon = createVolumeIcon(volume)
+        val icon = getOrCreateVolumeIcon(volume)
 
-        return Notification.Builder(this, channelId)
+        val builder = Notification.Builder(this, channelId)
             .setSmallIcon(icon)
-            .setContentTitle("Medievolum")
-            .setContentText("Nivå: $volume%")
-            .setOngoing(false) // Can be swiped away
-            .build()
+            .setContentTitle(getString(R.string.notif_title))
+            .setContentText(getString(R.string.notif_text, volume))
+            .setOngoing(true)
+            .setCategory(Notification.CATEGORY_STATUS)
+            .setOnlyAlertOnce(true)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
+        }
+
+        return builder.build()
     }
 
     private fun updateNotification() {
@@ -139,7 +157,7 @@ class VolumeService : Service() {
         // Notification Channels are mandatory for API 26+
         val channel = NotificationChannel(
             channelId,
-            "Volumsporing",
+            getString(R.string.notif_channel_name),
             NotificationManager.IMPORTANCE_LOW // Low priority ensures no sound/pop-up, just the icon
         )
         channel.setShowBadge(false)

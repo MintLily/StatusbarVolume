@@ -5,14 +5,17 @@ FiiO-lignende medievolumprosent plassert i statuslinjen
 ## Volumen de la barra de estado
 Porcentaje del volumen multimedia al estilo de FiiO, situado en la barra de estado
 
-# Gjøremål
-- Legg til flerspråklig støtte
-  - [x] norsk
-  - [ ] engelsk
-  - [ ] spansk
-  - [ ] mer?
-- Legg til vekslebryter for å kjøre ved oppstart
+# Features
+- Display media volume in status bar
+- Supported Languages
+  - English
+  - Norsk (bokmål)
+  - Español (MX/US)
+  - Deutsch
+  - Français (FR/CA)
+  - 日本の
+- Option to auto start on boot
 
-# Forutsetninger
+# Requirements
 - API 26+ (Android 8.0+)
 - 10 MB
