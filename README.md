@@ -1,6 +1,12 @@
-# Volum i Statuslinjen
+# Statusbar Volume
+FiiO-like media volume percentage placed in your status bar
+## Statuslinjevolum
+FiiO-lignende medievolumprosent plassert i statuslinjen
+## Volumen de la barra de estado
+Porcentaje del volumen multimedia al estilo de FiiO, situado en la barra de estado
 
-Jeg klarte ikke å finne en app som la til medievolum i statuslinjen, så jeg laget min egen. Denne er laget for å etterligne enkelte dedikerte mediespillere, slik som de fra FiiO.
+# Features
+- Display media volume in status bar
 - Supported Languages
   - English
   - Norsk (bokmål)
@@ -8,7 +14,8 @@ Jeg klarte ikke å finne en app som la til medievolum i statuslinjen, så jeg la
   - Deutsch
   - Français (FR/CA)
   - 日本の
+- Option to auto start on boot
 
-# Volume in Status Bar
-
-I was not able to find an app that added the media volume in the status bar, so I made my own. This made to mimic some dedicated media players like the FiiO ones. 
+# Requirements
+- API 26+ (Android 8.0+)
+- 10 MB
